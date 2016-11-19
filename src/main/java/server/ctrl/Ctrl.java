@@ -59,14 +59,16 @@ public class Ctrl {
 
     public JSONObject doFile() {
         FileService fileService = new FileService();
-        System.out.println(head);
         switch (head.getString("need")) {
             case "needToDel":
                 fileService.del(head,data);
+                break;
             case "needToReplace":
                 fileService.replace(head, data);
+                break;
             case "needToAdd":
                 fileService.add(head, data);
+                break;
         }
         temp.setOver(true);
         JSONObject json = new JSONObject();
