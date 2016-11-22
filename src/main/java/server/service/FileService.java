@@ -52,24 +52,34 @@ public class FileService {
         int ii = 0;
         for (int i = 0; i < fileJsonArray.size(); i++) {
             JSONObject singleFileJson = fileJsonArray.getJSONObject(i);
-            File fileDe = new File(parentPath, singleFileJson.getString("path"));
-            if (!fileDe.exists()) {
-                fileDe.mkdirs();
-            }
-            File file = new File(parentPath, singleFileJson.getString("path")+"/"+singleFileJson.getString("filename"));
-            int size = singleFileJson.getInteger("fileSize");
-            byte[] singlefileByte = ArrayUtils.subarray(data, ii, ii + size);
-            ii = ii + size;
-            try {
-                FileUtils.writeByteArrayToFile(file, singlefileByte);
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (singleFileJson.getInteger("isFile")==1) {
+                File fileDe = new File(parentPath, singleFileJson.getString("path"));
+                if (!fileDe.exists()) {
+                    fileDe.mkdirs();
+                }
+                System.out.println(parentPath+"/"+singleFileJson.getString("path") + "/" + singleFileJson.getString("filename"));
+                File file = new File(parentPath, singleFileJson.getString("path") + "/" + singleFileJson.getString("filename"));
+                int size = singleFileJson.getInteger("fileSize");
+                byte[] singlefileByte = ArrayUtils.subarray(data, ii, ii + size);
+                ii = ii + size;
+                try {
+                    FileUtils.writeByteArrayToFile(file, singlefileByte);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }else{
+                System.out.println(parentPath+"\\"+singleFileJson.getString("path")+ "/" + singleFileJson.getString("filename"));
+                File fileDe = new File(parentPath, singleFileJson.getString("path")+ "/" + singleFileJson.getString("filename"));
+                if (!fileDe.exists()) {
+                    fileDe.mkdirs();
+                }
             }
         }
     }
 
     private void deleteInWindows(JSONArray fileJsonArray, String parentPath) {
         String cmdStr = "";
+        String cmdStrDe="";
         for (int i = 0; i < fileJsonArray.size(); i++) {
             JSONObject singleFileJson = fileJsonArray.getJSONObject(i);
             parentPath=parentPath.replace("/","\\");
@@ -77,13 +87,19 @@ public class FileService {
             if (singleFileJson.getInteger("isFile")==1){
                 cmdStr = cmdStr + "\"" + parentPath+ "\\" +path+ "\\"+ singleFileJson.getString("filename") + "\" ";
             }else{
-                cmdStr = cmdStr + "\"" + parentPath+ "\\" +path+ "\\";
+                cmdStrDe = cmdStr + "\"" + parentPath+ "\\" +path+ "\\";
             }
         }
         try {
+            if (!cmdStrDe.equals("")){
+                cmdStrDe.replace("/", "\\");
+                System.out.println("cmd /c rd/s/q " + cmdStrDe);
+                Runtime.getRuntime().exec("cmd /c rd/s/q " + cmdStrDe);
+
+            }
             cmdStr.replace("/", "\\");
-            System.out.println("cmd /c rd/s/q " + cmdStr);
-            Runtime.getRuntime().exec("cmd /c rd/s/q " + cmdStr);
+            System.out.println("cmd /c del " + cmdStr);
+            Runtime.getRuntime().exec("cmd /c del " + cmdStr);
         } catch (IOException e) {
             e.printStackTrace();
         }

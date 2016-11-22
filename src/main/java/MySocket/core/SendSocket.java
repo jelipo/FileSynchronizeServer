@@ -31,7 +31,6 @@ public class SendSocket {
 
 
     public void send() throws IOException {
-        int msg =0;
         byte[] firstCut="/0!F/".getBytes();
         byte[] endCut="/0!E/".getBytes();
         byte[] valueByte= Base64.encodeBase64(value.toString().getBytes());

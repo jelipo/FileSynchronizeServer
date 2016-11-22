@@ -11,7 +11,7 @@ public class FileCompareCore {
     private JSONObject compareList=new JSONObject();
     private JSONObject needToReplaceList=new JSONObject();
     private Boolean isGetReplaceList;
-
+ //                                server              client
     private void compare(JSONObject before, JSONObject after) {
         Iterator it = after.keySet().iterator();
         while (it.hasNext()) {
