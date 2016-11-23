@@ -4,9 +4,12 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.SystemUtils;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 /**
  * Created by 10441 on 2016/10/25.
@@ -68,8 +71,8 @@ public class FileService {
                     e.printStackTrace();
                 }
             }else{
-                System.out.println(parentPath+"\\"+singleFileJson.getString("path")+ "/" + singleFileJson.getString("filename"));
-                File fileDe = new File(parentPath, singleFileJson.getString("path")+ "/" + singleFileJson.getString("filename"));
+                File fileDe = new File(parentPath+"/"+singleFileJson.getString("path"));
+                System.out.println(fileDe.getAbsoluteFile());
                 if (!fileDe.exists()) {
                     fileDe.mkdirs();
                 }
@@ -85,21 +88,38 @@ public class FileService {
             parentPath=parentPath.replace("/","\\");
             String path=singleFileJson.getString("path").replace("/","\\");
             if (singleFileJson.getInteger("isFile")==1){
-                cmdStr = cmdStr + "\"" + parentPath+ "\\" +path+ "\\"+ singleFileJson.getString("filename") + "\" ";
+                String filePath=parentPath+ "\\" +path+ "\\"+ singleFileJson.getString("filename");
+                File file=new File(filePath);
+                file.getAbsoluteFile().delete();
+                FileUtils.deleteQuietly(file);
+                cmdStr = cmdStr + " \""+filePath+ "\" ";
             }else{
-                cmdStrDe = cmdStr + "\"" + parentPath+ "\\" +path+ "\\";
+                cmdStrDe = cmdStr + " \"" + parentPath+ "\\" +path+ "\\";
             }
         }
         try {
             if (!cmdStrDe.equals("")){
-                cmdStrDe.replace("/", "\\");
-                System.out.println("cmd /c rd/s/q " + cmdStrDe);
-                Runtime.getRuntime().exec("cmd /c rd/s/q " + cmdStrDe);
+                System.out.println("cmd /c rd/s/q " + cmdStrDe.replace("/", "\\"));
+                Runtime.getRuntime().exec("cmd /c rd/s/q " + cmdStrDe.replace("/", "\\"));
 
             }
-            cmdStr.replace("/", "\\");
-            System.out.println("cmd /c del " + cmdStr);
-            Runtime.getRuntime().exec("cmd /c del " + cmdStr);
+
+            System.out.println("cmd /c del/f/s/q " +cmdStr.replace("/", "\\").replace("\\\\","\\"));
+            Process process=Runtime.getRuntime().exec("cmd /c del/f/s/q " +cmdStr.replace("/", "\\").replace("\\\\","\\"));
+            InputStreamReader inputStr = new InputStreamReader(process.getInputStream());
+            BufferedReader br = new BufferedReader(inputStr);
+            String temp = "";
+            while((temp = br.readLine())!= null){
+                System.out.println(temp);
+            }
+            process.destroy();
+            br.close();
+            inputStr.close();
+            try {
+                process.waitFor();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
