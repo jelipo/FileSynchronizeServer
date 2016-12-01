@@ -5,11 +5,11 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import init.Context;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.digest.DigestUtils;
 import server.ctrl.Ctrl;
 import server.temp.Temp;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -78,7 +78,7 @@ public class MySocketProtocol implements Runnable {
             int r = -1;
             Boolean isFindFirst = false;
             List<Byte>  temp = new LinkedList<Byte>();
-            int[] endTemp = new int[end_length];
+            byte[] endTemp = new byte[end_length];
             while ((r = in.read()) != -1) {
                 if (r == FIRST_BYTE[0]&&(!isFindFirst)) {
                     timeA=System.currentTimeMillis();
@@ -96,10 +96,7 @@ public class MySocketProtocol implements Runnable {
                     temp.add((byte) r);
                     while ((r = in.read()) != -1) {
                         if (r == END_BYTE[0]) {
-                            for (int i = 0; i < end_length; i++) {
-                                r = in.read();
-                                endTemp[i] = r;
-                            }
+                            in.read(endTemp,0,end_length);
                             if (endTemp[0] == end[0] && endTemp[1] == end[1] && endTemp[2] == end[2]&& endTemp[3] ==end[3]) {
                                 whatNeedToDO(temp,in);
                                 temp.clear();
@@ -108,7 +105,7 @@ public class MySocketProtocol implements Runnable {
                             } else {
                                 temp.add((byte)END_BYTE[0]);
                                 for (int i = 0; i < endTemp.length; i++) {
-                                    temp.add((byte) endTemp[i]);
+                                    temp.add(endTemp[i]);
                                 }
                             }
                         } else {
@@ -144,6 +141,7 @@ public class MySocketProtocol implements Runnable {
         int leng=headJson.getInteger("dataSize");
         byte[] da=new byte[leng];
         in.read(da,0,leng);
+
         byte[] overCut=new byte[overFlag.length()];
         in.read(overCut,0,overFlag.length());
         Temp temp=new Temp();
@@ -158,9 +156,11 @@ public class MySocketProtocol implements Runnable {
             sendSocket.send();
 
         }else{
+            returnJson=new JSONObject();
             returnJson.put("status",true);
             returnJson.put("msg","数据不完整");
-            System.out.println("此条socket数据不是完整的数据");
+            returnJson.put("wrong",true);
+            System.out.println("此条socket数据不是完整的数据" +da.length+ DigestUtils.md5Hex(da));
             SendSocket sendSocket=new SendSocket(temp.getSocket(),returnJson);
             sendSocket.send();
         }

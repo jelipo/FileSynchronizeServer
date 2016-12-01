@@ -23,6 +23,7 @@ public class Main {
             context.setCachedThreadPool(cachedThreadPool);
             // 处理这次新连接
             new MySocketProtocol(client,context);
+            String ss[]="dsda".split("()");
         }
     }
 
